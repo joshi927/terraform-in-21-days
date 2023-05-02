@@ -1,1 +1,1 @@
-Welcome to the terraform!
+Welcome to the course

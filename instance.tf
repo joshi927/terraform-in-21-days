@@ -20,6 +20,7 @@ resource "aws_instance" "public" {
   key_name                    = "main"
   vpc_security_group_ids      = [aws_security_group.public.id]
   subnet_id                   = aws_subnet.public[0].id
+
   user_data = file("user-data.sh")
 
   tags = {
@@ -47,6 +48,7 @@ resource "aws_security_group" "public" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
+
 
   egress {
     from_port   = 0

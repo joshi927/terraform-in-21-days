@@ -1,6 +1,5 @@
-locals {
-  availability_zones = ["us-east-1a","us-east-1b","us-east-1c"]
-
+data "aws_availability_zones" "available" {
+  state = "available"
 }
 
 resource "aws_vpc" "main" {
@@ -14,12 +13,12 @@ resource "aws_vpc" "main" {
 resource "aws_subnet" "public" {
   count = length(var.public_cidr)
 
-  vpc_id     = aws_vpc.main.id
-  cidr_block = var.public_cidr[count.index]
-  availability_zone = local.availability_zones[count.index]
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = var.public_cidr[count.index]
+  availability_zone = data.aws_availability_zones.available.names[count.index]
 
   tags = {
-    Name = "${var.env_code}-public${count.index+1}"
+    Name = "${var.env_code}-public${count.index + 1}"
   }
 }
 
@@ -28,12 +27,12 @@ resource "aws_subnet" "public" {
 resource "aws_subnet" "private" {
   count = length(var.private_cidr)
 
-  vpc_id     = aws_vpc.main.id
-  cidr_block = var.private_cidr[count.index]
-  availability_zone = local.availability_zones[count.index]
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = var.private_cidr[count.index]
+  availability_zone = data.aws_availability_zones.available.names[count.index]
 
   tags = {
-    Name = "${var.env_code}-private${count.index+1}"
+    Name = "${var.env_code}-private${count.index + 1}"
   }
 }
 
@@ -72,10 +71,10 @@ resource "aws_route_table_association" "public" {
 resource "aws_eip" "nat" {
   count = length(var.public_cidr)
 
-  vpc      = true
+  vpc = true
 
   tags = {
-    Name = "${var.env_code}-nat${count.index+1}"
+    Name = "${var.env_code}-nat${count.index + 1}"
   }
 }
 
@@ -88,7 +87,7 @@ resource "aws_nat_gateway" "main" {
   subnet_id     = aws_subnet.public[count.index].id
 
   tags = {
-    Name = "${var.env_code}-main${count.index+1}"
+    Name = "${var.env_code}-main${count.index + 1}"
   }
 
   # To ensure proper ordering, it is recommended to add an explicit dependency
@@ -103,12 +102,12 @@ resource "aws_route_table" "private" {
   vpc_id = aws_vpc.main.id
 
   route {
-    cidr_block = "0.0.0.0/0"
+    cidr_block     = "0.0.0.0/0"
     nat_gateway_id = aws_nat_gateway.main[count.index].id
   }
 
   tags = {
-    Name = "${var.env_code}-private${count.index+1}"
+    Name = "${var.env_code}-private${count.index + 1}"
   }
 }
 
